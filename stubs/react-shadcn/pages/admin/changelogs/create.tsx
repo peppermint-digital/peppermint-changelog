@@ -11,10 +11,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
+import { MarkdownEditor } from '@peppermint-digital/react-markdown-editor';
 import { ArrowLeft, Save } from 'lucide-react';
 import { type FormEventHandler } from 'react';
 
@@ -118,12 +118,11 @@ export default function AdminChangelogCreate() {
                             <CardDescription>Markdown-Inhalt des Changelogs</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Textarea
-                                id="content"
+                            <MarkdownEditor
                                 value={data.content}
-                                onChange={(e) => setData('content', e.target.value)}
-                                placeholder="## Neue Features&#10;&#10;- Feature 1&#10;- Feature 2&#10;&#10;## Verbesserungen&#10;&#10;- ..."
-                                className="min-h-64 font-mono"
+                                onChange={(value) => setData('content', value)}
+                                placeholder="## Neue Features&#10;&#10;- Feature 1&#10;- Feature 2"
+                                minHeight="300px"
                             />
                             <InputError message={errors.content} />
                         </CardContent>
