@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
-import { MarkdownEditor } from '@peppermint-digital/react-markdown-editor';
+import { MarkdownEditor } from '@peppermint-digital/markdown-editor';
 import { ArrowLeft, Save } from 'lucide-react';
 import { type FormEventHandler } from 'react';
 
