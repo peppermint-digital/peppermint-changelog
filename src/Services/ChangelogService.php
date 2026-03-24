@@ -61,11 +61,15 @@ class ChangelogService
 
     /**
      * Get the latest changelog with modal enabled that user hasn't dismissed.
+     * Only shows changelogs published after the user was created.
      */
     public function getPendingModalChangelog(Authenticatable $user): ?array
     {
+        $userCreatedAt = $user->created_at;
+
         return $this->published()
             ->filter(fn ($changelog) => $changelog['show_modal'])
+            ->filter(fn ($changelog) => ! $userCreatedAt || $changelog['published_at']->greaterThanOrEqualTo($userCreatedAt->startOfDay()))
             ->filter(fn ($changelog) => ! $this->isModalDismissedBy($changelog['slug'], $user))
             ->first();
     }
