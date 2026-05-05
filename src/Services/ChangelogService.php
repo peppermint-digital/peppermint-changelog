@@ -46,6 +46,26 @@ class ChangelogService
     }
 
     /**
+     * Get published changelogs visible to the given user.
+     *
+     * Filters out changelogs that were published before the user was created
+     * to avoid flooding new users with legacy history.
+     */
+    public function publishedFor(Authenticatable $user): Collection
+    {
+        $userCreatedAt = $user->created_at ?? null;
+
+        if (! $userCreatedAt) {
+            return $this->published();
+        }
+
+        $cutoff = $userCreatedAt->startOfDay();
+
+        return $this->published()
+            ->filter(fn ($changelog) => $changelog['published_at']->greaterThanOrEqualTo($cutoff));
+    }
+
+    /**
      * Get a single changelog by slug.
      */
     public function find(string $slug): ?array
