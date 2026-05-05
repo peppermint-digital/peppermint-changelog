@@ -86,6 +86,22 @@ class ChangelogService
     }
 
     /**
+     * Get all read changelog slugs for a user (single query).
+     *
+     * Useful when checking read-state for many changelogs at once to avoid
+     * N+1 queries via repeated isReadBy() calls.
+     *
+     * @return array<int, string>
+     */
+    public function getReadSlugsForUser(Authenticatable $user): array
+    {
+        return ChangelogRead::where('user_id', $user->getAuthIdentifier())
+            ->whereNotNull('read_at')
+            ->pluck('changelog_slug')
+            ->all();
+    }
+
+    /**
      * Check if user has dismissed the modal for a changelog.
      */
     public function isModalDismissedBy(string $slug, Authenticatable $user): bool
