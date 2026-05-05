@@ -36,29 +36,36 @@ Dann installieren:
 composer require "peppermint/changelog:dev-master"
 ```
 
-### 2. Config publishen
+### 2. Setup-Command (empfohlen)
+
+```bash
+php artisan changelog:install
+```
+
+Macht in einem Rutsch:
+- Config publishen (`config/changelog.php`)
+- Frontend-Stubs publishen (interaktiv React/Vue/none)
+- Migrations ausfuehren
+- `changelogs/` Verzeichnis anlegen
+- Hinweis auf NPM-Pflicht-Dependency `@peppermint-digital/markdown-editor`
+
+**Optionen:**
+- `--frontend=react|vue` non-interaktiv waehlen
+- `--with-npm` `npm install` automatisch mit ausfuehren
+- `--force` existierende publizierte Files ueberschreiben
+
+### 2b. Manueller Setup (Alternative)
+
+Falls du es Schritt fuer Schritt willst:
 
 ```bash
 php artisan vendor:publish --tag=changelog-config
+php artisan vendor:publish --tag=changelog-react   # oder changelog-vue
+php artisan migrate
+mkdir changelogs
 ```
 
-Erstellt `config/changelog.php` mit Einstellungen fuer Pfade, Middleware und Inertia Page-Pfade.
-
-### 3. Frontend-Stubs publishen
-
-**React + shadcn/ui:**
-```bash
-php artisan vendor:publish --tag=changelog-react
-```
-
-**Vue + Reka UI (shadcn/vue):**
-```bash
-php artisan vendor:publish --tag=changelog-vue
-```
-
-Dies kopiert Seiten und Komponenten in dein `resources/js/` Verzeichnis.
-
-#### NPM Dependency (Pflicht)
+### 3. NPM Dependency (Pflicht)
 
 Die Stubs (Create / Edit) nutzen `@peppermint-digital/markdown-editor` als Editor. Dieses Paket gehoert immer zum Changelog-System dazu:
 
@@ -72,19 +79,7 @@ Sobald das Paket auf npm publiziert ist, kann es direkt installiert werden:
 npm install @peppermint-digital/markdown-editor
 ```
 
-### 4. Migration ausfuehren
-
-```bash
-php artisan migrate
-```
-
-Erstellt die `changelog_reads` Tabelle.
-
-### 5. Changelogs-Verzeichnis erstellen
-
-```bash
-mkdir changelogs
-```
+`changelog:install --with-npm` erledigt das automatisch.
 
 ## Konfiguration
 

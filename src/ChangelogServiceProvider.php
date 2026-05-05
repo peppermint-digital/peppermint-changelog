@@ -3,6 +3,7 @@
 namespace Peppermint\Changelog;
 
 use Illuminate\Support\ServiceProvider;
+use Peppermint\Changelog\Console\InstallCommand;
 use Peppermint\Changelog\Services\ChangelogService;
 
 class ChangelogServiceProvider extends ServiceProvider
@@ -24,8 +25,12 @@ class ChangelogServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__.'/../routes/changelog.php');
         }
 
-        // Publishable assets
+        // Publishable assets + Console-Commands
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                InstallCommand::class,
+            ]);
+
             // Config
             $this->publishes([
                 __DIR__.'/../config/changelog.php' => config_path('changelog.php'),
