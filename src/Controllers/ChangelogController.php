@@ -18,7 +18,7 @@ class ChangelogController extends Controller
     {
         $user = auth()->user();
 
-        $changelogs = $this->changelogService->published()
+        $changelogs = $this->changelogService->publishedFor($user)
             ->map(fn ($changelog) => [
                 'slug' => $changelog['slug'],
                 'version' => $changelog['version'],
