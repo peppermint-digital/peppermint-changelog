@@ -58,6 +58,20 @@ php artisan vendor:publish --tag=changelog-vue
 
 Dies kopiert Seiten und Komponenten in dein `resources/js/` Verzeichnis.
 
+#### NPM Dependency (Pflicht)
+
+Die Stubs (Create / Edit) nutzen `@peppermint-digital/markdown-editor` als Editor. Dieses Paket gehoert immer zum Changelog-System dazu:
+
+```bash
+npm install github:peppermint-digital/markdown-editor
+```
+
+Sobald das Paket auf npm publiziert ist, kann es direkt installiert werden:
+
+```bash
+npm install @peppermint-digital/markdown-editor
+```
+
 ### 4. Migration ausfuehren
 
 ```bash
