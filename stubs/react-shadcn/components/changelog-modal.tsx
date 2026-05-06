@@ -12,7 +12,7 @@ import { router } from '@inertiajs/react';
 import { FileText, Sparkles, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-interface Changelog {
+export interface Changelog {
     slug: string;
     version: string | null;
     title: string;
