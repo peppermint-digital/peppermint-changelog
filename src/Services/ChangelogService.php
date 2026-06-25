@@ -5,6 +5,7 @@ namespace Peppermint\Changelog\Services;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Peppermint\Changelog\Models\ChangelogRead;
 use Symfony\Component\Yaml\Yaml;
@@ -229,42 +230,52 @@ class ChangelogService
      */
     protected function parseFile(string $filePath): ?array
     {
-        $content = File::get($filePath);
         $slug = pathinfo($filePath, PATHINFO_FILENAME);
 
-        if (! preg_match('/^---\s*\n(.*?)\n---\s*\n(.*)$/s', $content, $matches)) {
+        // Eine einzelne fehlerhafte Changelog-Datei (z.B. kaputte YAML-Frontmatter)
+        // darf NIE die ganze App lahmlegen — getAll() wird bei jedem Inertia-Render
+        // gelesen. Defekte Datei → überspringen + loggen statt Exception nach oben.
+        try {
+            $content = File::get($filePath);
+
+            if (! preg_match('/^---\s*\n(.*?)\n---\s*\n(.*)$/s', $content, $matches)) {
+                return [
+                    'slug' => $slug,
+                    'version' => $slug,
+                    'title' => $slug,
+                    'content' => $content,
+                    'html_content' => Str::markdown($content),
+                    'is_markdown' => true,
+                    'published_at' => now(),
+                    'show_modal' => false,
+                    'is_active' => true,
+                    'is_published' => true,
+                ];
+            }
+
+            $frontmatter = Yaml::parse($matches[1]);
+            $markdownContent = trim($matches[2]);
+
+            $publishedAt = isset($frontmatter['published_at'])
+                ? \Carbon\Carbon::parse($frontmatter['published_at'])
+                : now();
+
             return [
                 'slug' => $slug,
-                'version' => $slug,
-                'title' => $slug,
-                'content' => $content,
-                'html_content' => Str::markdown($content),
+                'version' => $frontmatter['version'] ?? $slug,
+                'title' => $frontmatter['title'] ?? $slug,
+                'content' => $markdownContent,
+                'html_content' => Str::markdown($markdownContent),
                 'is_markdown' => true,
-                'published_at' => now(),
-                'show_modal' => false,
-                'is_active' => true,
-                'is_published' => true,
+                'published_at' => $publishedAt,
+                'show_modal' => $frontmatter['show_modal'] ?? false,
+                'is_active' => $frontmatter['is_active'] ?? true,
+                'is_published' => $publishedAt->isPast() || $publishedAt->isToday(),
             ];
+        } catch (\Throwable $e) {
+            Log::warning('[changelog] Datei übersprungen (Parse-Fehler): '.basename($filePath).' — '.$e->getMessage());
+
+            return null;
         }
-
-        $frontmatter = Yaml::parse($matches[1]);
-        $markdownContent = trim($matches[2]);
-
-        $publishedAt = isset($frontmatter['published_at'])
-            ? \Carbon\Carbon::parse($frontmatter['published_at'])
-            : now();
-
-        return [
-            'slug' => $slug,
-            'version' => $frontmatter['version'] ?? $slug,
-            'title' => $frontmatter['title'] ?? $slug,
-            'content' => $markdownContent,
-            'html_content' => Str::markdown($markdownContent),
-            'is_markdown' => true,
-            'published_at' => $publishedAt,
-            'show_modal' => $frontmatter['show_modal'] ?? false,
-            'is_active' => $frontmatter['is_active'] ?? true,
-            'is_published' => $publishedAt->isPast() || $publishedAt->isToday(),
-        ];
     }
 }
