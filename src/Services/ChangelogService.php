@@ -21,6 +21,19 @@ class ChangelogService
 
     /**
      * Get all changelogs from the filesystem.
+     *
+     * Sortiert nach Datum, bei Gleichstand nach Version — beides absteigend.
+     *
+     * Das zweite Kriterium ist nicht Zierrat: `published_at` ist datumsgenau, also
+     * haben zwei Veröffentlichungen desselben Tages denselben Schlüssel. Ohne
+     * Tie-Break entschied die Reihenfolge des Datei-Globs, und die ältere Version
+     * stand über der neueren. Betroffen war auch {@see getPendingModalChangelog()},
+     * das schlicht den ersten Treffer nimmt: Bei zwei Modal-Einträgen eines Tages
+     * bekam der Benutzer den älteren zu sehen, und der neuere galt danach als
+     * abgehandelt.
+     *
+     * Eine Uhrzeit im Frontmatter wäre die Alternative gewesen — sie müsste aber
+     * jeder Eintrag mitführen, und der Bestand hat sie nicht.
      */
     public function all(): Collection
     {
@@ -33,8 +46,31 @@ class ChangelogService
         return collect($files)
             ->map(fn ($file) => $this->parseFile($file))
             ->filter()
-            ->sortByDesc('published_at')
+            ->sortByDesc(fn (array $changelog): array => [
+                $changelog['published_at']->getTimestamp(),
+                $this->versionSortKey((string) ($changelog['version'] ?? '')),
+            ])
             ->values();
+    }
+
+    /**
+     * Version als vergleichbarer Schlüssel: `1.104.0` → `00001.00104.00000`.
+     *
+     * Nötig, weil ein Zeichenketten-Vergleich sonst `1.99.0` über `1.104.0` stellte
+     * — Ziffer für Ziffer gelesen ist `9` grösser als `1`. Jeder Zahlenblock wird
+     * deshalb auf fünf Stellen aufgefüllt; alles Nicht-Numerische (Vorsilben wie
+     * `v`, Zusätze wie `-beta`) trennt die Blöcke und fällt dabei weg.
+     */
+    protected function versionSortKey(string $version): string
+    {
+        $teile = preg_split('/\D+/', $version, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $teile = array_map(
+            fn (string $zahl): string => str_pad(substr($zahl, 0, 5), 5, '0', STR_PAD_LEFT),
+            array_slice($teile, 0, 4),
+        );
+
+        return implode('.', array_pad($teile, 4, '00000'));
     }
 
     /**
