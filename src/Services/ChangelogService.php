@@ -75,11 +75,23 @@ class ChangelogService
 
     /**
      * Get only active and published changelogs.
+     *
+     * `values()` ist hier PFLICHT, nicht Kosmetik. `filter()` behaelt die
+     * Schluessel, und ein PHP-Array mit Luecken wird von `json_encode` zum
+     * **Objekt** statt zum Array.
+     *
+     * Am 13.09.2026 hat das im Peppermint Manager die gesamte
+     * Versionshistorie unsichtbar gemacht: Zwei Eintraege standen auf
+     * `is_active: false` und rissen Loecher in die Schluessel. Im Browser war
+     * `changelogs.length` damit `undefined`, `undefined > 0` ergab `false`,
+     * und die Seite zeigte freundlich „Keine Changelogs" — bei 261
+     * vorhandenen. Kein Absturz, keine Meldung: der schlimmere Ausfall.
      */
     public function published(): Collection
     {
         return $this->all()
-            ->filter(fn ($changelog) => $changelog['is_active'] && $changelog['is_published']);
+            ->filter(fn ($changelog) => $changelog['is_active'] && $changelog['is_published'])
+            ->values();
     }
 
     /**
@@ -99,7 +111,10 @@ class ChangelogService
         $cutoff = $userCreatedAt->startOfDay();
 
         return $this->published()
-            ->filter(fn ($changelog) => $changelog['published_at']->greaterThanOrEqualTo($cutoff));
+            ->filter(fn ($changelog) => $changelog['published_at']->greaterThanOrEqualTo($cutoff))
+            // Auch hier: der zweite Filter reisst neue Luecken, selbst wenn
+            // `published()` sauber beginnt.
+            ->values();
     }
 
     /**
