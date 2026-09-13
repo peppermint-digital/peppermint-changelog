@@ -41,12 +41,6 @@ class ChangelogServiceProvider extends ServiceProvider
                 __DIR__.'/../stubs/react-shadcn/components/' => resource_path('js/components/'),
                 __DIR__.'/../stubs/react-shadcn/pages/' => resource_path('js/pages/'),
             ], 'changelog-react');
-
-            // Vue + shadcn/ui (Reka UI) stubs
-            $this->publishes([
-                __DIR__.'/../stubs/vue-shadcn/components/' => resource_path('js/components/'),
-                __DIR__.'/../stubs/vue-shadcn/pages/' => resource_path('js/pages/'),
-            ], 'changelog-vue');
         }
     }
 }

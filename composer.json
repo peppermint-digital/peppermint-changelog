@@ -1,6 +1,6 @@
 {
     "name": "peppermint/changelog",
-    "description": "File-based changelog system for Laravel with per-user read tracking and modal notifications. Supports React and Vue frontends with shadcn/ui.",
+    "description": "File-based changelog system for Laravel with per-user read tracking and modal notifications. Ships React + shadcn/ui frontend stubs.",
     "type": "library",
     "license": "MIT",
     "authors": [

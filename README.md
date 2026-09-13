@@ -1,6 +1,6 @@
 # peppermint/changelog
 
-File-based Changelog-System for Laravel with per-user read tracking, modal notifications, and publishable frontend stubs for React and Vue (both with shadcn/ui).
+File-based Changelog-System for Laravel with per-user read tracking, modal notifications, and publishable frontend stubs for React + shadcn/ui.
 
 ## Features
 
@@ -9,7 +9,7 @@ File-based Changelog-System for Laravel with per-user read tracking, modal notif
 - **Modal-Benachrichtigungen** — Zeigt neue Updates automatisch als Modal an
 - **Admin CRUD** — Changelogs erstellen, bearbeiten, loeschen mit Leser-Statistiken
 - **Konfigurierbar** — Routes, Middleware, Inertia Page-Pfade anpassbar
-- **Multi-Stack** — Publishable Frontend-Stubs fuer React + shadcn/ui und Vue + Reka UI
+- **Frontend-Stubs** — Publishable React-Komponenten auf Basis von shadcn/ui
 
 ## Installation
 
@@ -44,13 +44,12 @@ php artisan changelog:install
 
 Macht in einem Rutsch:
 - Config publishen (`config/changelog.php`)
-- Frontend-Stubs publishen (interaktiv React/Vue/none)
+- Frontend-Stubs publishen (React + shadcn/ui)
 - Migrations ausfuehren
 - `changelogs/` Verzeichnis anlegen
 - Hinweis auf NPM-Pflicht-Dependency `@peppermint-digital/markdown-editor`
 
 **Optionen:**
-- `--frontend=react|vue` non-interaktiv waehlen
 - `--with-npm` `npm install` automatisch mit ausfuehren
 - `--force` existierende publizierte Files ueberschreiben
 
@@ -60,7 +59,7 @@ Falls du es Schritt fuer Schritt willst:
 
 ```bash
 php artisan vendor:publish --tag=changelog-config
-php artisan vendor:publish --tag=changelog-react   # oder changelog-vue
+php artisan vendor:publish --tag=changelog-react
 php artisan migrate
 mkdir changelogs
 ```
@@ -212,22 +211,6 @@ export default function AppLayout({ children }) {
         </>
     );
 }
-```
-
-### Layout-Integration (Vue)
-
-```vue
-<script setup>
-import ChangelogModal from '@/components/ChangelogModal.vue'
-import { usePage } from '@inertiajs/vue3'
-
-const page = usePage()
-</script>
-
-<template>
-    <slot />
-    <ChangelogModal :changelog="page.props.pendingChangelog" />
-</template>
 ```
 
 ## Routes

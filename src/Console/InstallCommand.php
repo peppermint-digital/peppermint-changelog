@@ -8,7 +8,6 @@ use Symfony\Component\Process\Process;
 class InstallCommand extends Command
 {
     protected $signature = 'changelog:install
-        {--frontend= : Frontend stack (react|vue). Defaults to interactive choice.}
         {--with-npm : Also run npm install for the markdown-editor dependency.}
         {--force : Overwrite existing published files.}';
 
@@ -19,10 +18,7 @@ class InstallCommand extends Command
         $this->components->info('peppermint/changelog — install');
 
         $this->publishConfig();
-        $frontend = $this->resolveFrontend();
-        if ($frontend !== null) {
-            $this->publishStubs($frontend);
-        }
+        $this->publishStubs();
         $this->runMigrations();
         $this->ensureChangelogsDirectory();
         $this->surfaceNpmDependency();
@@ -42,25 +38,9 @@ class InstallCommand extends Command
         $this->call('vendor:publish', $args);
     }
 
-    private function resolveFrontend(): ?string
+    private function publishStubs(): void
     {
-        $frontend = $this->option('frontend');
-
-        if ($frontend === null) {
-            $frontend = $this->choice(
-                'Welche Frontend-Stubs sollen publiziert werden?',
-                ['react', 'vue', 'none'],
-                'react',
-            );
-        }
-
-        return in_array($frontend, ['react', 'vue'], true) ? $frontend : null;
-    }
-
-    private function publishStubs(string $frontend): void
-    {
-        $tag = $frontend === 'react' ? 'changelog-react' : 'changelog-vue';
-        $args = ['--tag' => $tag];
+        $args = ['--tag' => 'changelog-react'];
         if ($this->option('force')) {
             $args['--force'] = true;
         }
