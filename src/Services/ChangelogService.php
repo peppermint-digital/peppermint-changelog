@@ -139,11 +139,47 @@ class ChangelogService
     {
         $userCreatedAt = $user->created_at;
 
-        return $this->published()
+        $kandidaten = $this->published()
             ->filter(fn ($changelog) => $changelog['show_modal'])
-            ->filter(fn ($changelog) => ! $userCreatedAt || $changelog['published_at']->greaterThanOrEqualTo($userCreatedAt->startOfDay()))
-            ->filter(fn ($changelog) => ! $this->isModalDismissedBy($changelog['slug'], $user))
+            ->filter(fn ($changelog) => ! $userCreatedAt || $changelog['published_at']->greaterThanOrEqualTo($userCreatedAt->startOfDay()));
+
+        if ($kandidaten->isEmpty()) {
+            return null;
+        }
+
+        // EINE Abfrage fuer alle Kandidaten statt einer je Eintrag.
+        //
+        // Diese Methode laeuft ueber `HandleInertiaRequests` bei JEDEM Aufruf
+        // der Anwendung. Mit `isModalDismissedBy()` je Eintrag kostete ein
+        // Seitenaufruf so viele zusaetzliche Abfragen, wie es unbestaetigte
+        // Modal-Eintraege gibt — und das waechst mit jeder Veroeffentlichung,
+        // nicht mit der Nutzung. Gemessen am 17.09.2026 in der Peppermint
+        // Verwaltung: vier zusaetzliche `exists`-Abfragen auf jeder Seite,
+        // nachdem an einem Tag vier Modal-Eintraege dazugekommen waren.
+        //
+        // Das Gegenstueck fuer den Lesestand gibt es mit
+        // {@see self::getReadSlugsForUser()} schon; fuer das Wegklicken fehlte
+        // es.
+        $weggeklickt = $this->getDismissedModalSlugsForUser($user, $kandidaten->pluck('slug')->all());
+
+        return $kandidaten
+            ->reject(fn ($changelog) => in_array($changelog['slug'], $weggeklickt, true))
             ->first();
+    }
+
+    /**
+     * Die Eintraege, deren Modal dieser Nutzer weggeklickt hat — in einer Abfrage.
+     *
+     * @param  list<string>|null  $slugs  Auf diese Eintraege einschraenken; null fragt alle.
+     * @return list<string>
+     */
+    public function getDismissedModalSlugsForUser(Authenticatable $user, ?array $slugs = null): array
+    {
+        return ChangelogRead::where('user_id', $user->getAuthIdentifier())
+            ->where('modal_dismissed', true)
+            ->when($slugs !== null, fn ($query) => $query->whereIn('changelog_slug', $slugs))
+            ->pluck('changelog_slug')
+            ->all();
     }
 
     /**
